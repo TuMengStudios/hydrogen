@@ -1,0 +1,35 @@
+name = "hydrogen"
+id = 0
+
+[http]
+endpoint = "localhost:3940"
+
+# db config
+[db]
+# connect url
+dsn = "mysql://root:123456@127.0.0.1:3306/hydrogen?charset=utf8mb4"
+# max connections
+max_conn = 2
+
+# log config
+[log]
+# log dir
+dir = "logs"
+
+# log file name
+file_name = "hydrogen.log"
+
+# file rotate every hour
+# keep max files
+max_file = 10
+
+# log format json 和 plain
+format = "plain"
+
+# log level trace, debug, info, warn or error
+level = "debug"
+
+# output to file or console, value is file or console
+# output = "console"
+output = "console"
+# output = "file"
