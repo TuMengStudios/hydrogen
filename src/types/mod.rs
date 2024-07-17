@@ -166,7 +166,7 @@ pub struct KafkaDstConfig {
 
 #[derive(Debug, Deserialize)]
 pub struct KafkaTopicRequest {
-	pub broker: String,
+	pub params: String,
 }
 
 pub type KafkaTopicResponse = Vec<String>;

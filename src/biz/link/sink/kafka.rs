@@ -10,6 +10,8 @@ use rdkafka::ClientConfig;
 use serde::Deserialize;
 use serde_json::json;
 
+use query_map::QueryMap;
+
 use tracing::debug;
 use tracing::instrument;
 
@@ -20,17 +22,22 @@ use super::Sinker;
 
 #[derive(Debug, Deserialize)]
 struct KafkaSinkArg {
-	broker: String,
+	// broker: String,
 	topic: String,
+	params: String, // format like: bootstrap.servers=localhost:9092,127.0.0.1:9092&message.timeout.ms=5000
 }
 
 impl KafkaSinkArg {
-	pub fn get_broker(&self) -> &str {
-		&self.broker
-	}
+	// pub fn get_broker(&self) -> &str {
+	// 	&self.broker
+	// }
 
 	pub fn get_topic(&self) -> &str {
 		&self.topic
+	}
+
+	pub fn get_params(&self) -> &str {
+		&self.params
 	}
 }
 
@@ -89,12 +96,24 @@ impl KafkaSinker {
 
 	#[tracing::instrument(skip(self))]
 	async fn producer_client(&self) -> anyhow::Result<FutureProducer> {
-		let producer: FutureProducer = ClientConfig::new()
-			.set("bootstrap.servers", self.arg.get_broker())
-			.set("message.timeout.ms", "5000")
+		let connect_map = self
+			.arg
+			.get_params()
+			.parse::<QueryMap>()
+			.with_context(|| "parser url to map error".to_string())?;
+
+		let mut config = ClientConfig::new();
+
+		for (k, v) in connect_map.iter() {
+			debug!("set config {}={}", k, v);
+			config.set(k, v);
+		}
+
+		let producer: FutureProducer = config
 			.set_log_level(rdkafka::config::RDKafkaLogLevel::Info)
 			.create()
-			.with_context(|| format!("create future producer {}", self.arg.get_broker()))?;
+			.with_context(|| format!("create future producer {}", self.arg.get_params()))?;
+
 		Ok(producer)
 	}
 }

@@ -47,6 +47,7 @@ lazy_static! {
 	pub static ref FETCH_TOPIC_ERR: AppErr = AppErr::new(30300, "fetch topic error");
 	pub static ref FETCH_TOPIC_CONNECT_ERR: AppErr = AppErr::new(30301, "connect error");
 	pub static ref FETCH_TOPIC_METADATA_ERR: AppErr = AppErr::new(30302, "fetch metadata error");
+	pub static ref FETCH_TOPIC_PROPERTY_ERR: AppErr = AppErr::new(30303, "property error");
 }
 
 lazy_static! {

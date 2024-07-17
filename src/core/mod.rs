@@ -93,6 +93,12 @@ impl AppErr {
 	}
 }
 
+impl AppErr {
+	pub fn with_err_msg(self, err_msg: String) -> Self {
+		Self { err_msg, ..self }
+	}
+}
+
 impl IntoResponse for AppErr {
 	fn into_response(self) -> axum::response::Response {
 		let data: Option<()> = None;

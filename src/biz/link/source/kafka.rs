@@ -1,3 +1,4 @@
+use query_map::QueryMap;
 use rdkafka::consumer::Consumer;
 use rdkafka::consumer::ConsumerContext;
 use rdkafka::consumer::Rebalance;
@@ -26,22 +27,27 @@ use super::Source;
 #[derive(Debug, Deserialize)]
 //pub struct ConsumerArgs {
 struct ConsumerArgs {
-	broker: String,
+	// broker: String,
 	topic: String,
-	group_id: String,
+	// group_id: String,
+	params: String, // format like: bootstrap.servers=localhost:9092,127.0.0.1:9092&message.timeout.ms=5000
 }
 
 impl ConsumerArgs {
-	pub fn get_broker(&self) -> &str {
-		&self.broker
-	}
+	// pub fn get_broker(&self) -> &str {
+	// 	&self.broker
+	// }
 
 	pub fn get_topic(&self) -> &str {
 		&self.topic
 	}
 
-	pub fn get_group_id(&self) -> &str {
-		&self.group_id
+	// pub fn get_group_id(&self) -> &str {
+	// 	&self.group_id
+	// }
+
+	pub fn get_params(&self) -> &str {
+		&self.params
 	}
 }
 
@@ -91,10 +97,9 @@ impl Source for KafkaSource {
 			let raw_msg = res
 				.with_context(|| {
 					format!(
-						"covert to str {} topic {} group {}",
-						self.arg.get_broker(),
+						"covert to str {} topic {}",
+						self.arg.get_params(),
 						self.arg.get_topic(),
-						self.arg.get_group_id()
 					)
 				})?
 				.to_string();
@@ -108,15 +113,32 @@ impl KafkaSource {
 	#[instrument(skip(self))]
 	async fn streaming_consumer(&self) -> anyhow::Result<LoggingConsumer> {
 		let context = StreamLoggingCustomContext {};
-		let consumer: LoggingConsumer = ClientConfig::new()
-			.set("bootstrap.servers", self.arg.get_broker())
-			.set("group.id", self.arg.get_group_id())
-			.set("enable.partition.eof", "false")
-			.set("session.timeout.ms", "6000")
-			.set("enable.auto.commit", "true")
+		let connect_map = self
+			.arg
+			.get_params()
+			.parse::<QueryMap>()
+			.with_context(|| "parser url to map error".to_string())?;
+
+		let mut config = ClientConfig::new();
+		for (k, v) in connect_map.iter() {
+			debug!("set config {}={}", k, v);
+			config.set(k, v);
+		}
+
+		let consumer: LoggingConsumer = config
 			.set_log_level(rdkafka::config::RDKafkaLogLevel::Info)
 			.create_with_context(context)
-			.with_context(|| format!("connect broker {}", self.arg.get_broker()))?;
+			.with_context(|| format!("connect kafka broker {}", self.arg.get_params()))?;
+
+		// let consumer: LoggingConsumer = ClientConfig::new()
+		// 	.set("bootstrap.servers", self.arg.get_broker())
+		// 	.set("group.id", self.arg.get_group_id())
+		// 	.set("enable.partition.eof", "false")
+		// 	.set("session.timeout.ms", "6000")
+		// 	.set("enable.auto.commit", "true")
+		// 	.set_log_level(rdkafka::config::RDKafkaLogLevel::Info)
+		// 	.create_with_context(context)
+		// 	.with_context(|| format!("connect broker {}", self.arg.get_broker()))?;
 
 		Ok(consumer)
 	}

@@ -2,40 +2,56 @@ use std::time::Duration;
 
 use anyhow::Context;
 
+use query_map::QueryMap;
 use rdkafka::consumer::BaseConsumer;
 use rdkafka::consumer::Consumer;
 use rdkafka::ClientConfig;
 
+use tracing::debug;
 use tracing::error;
 
 use crate::core::AppErr;
 use crate::errcode;
 
-#[tracing::instrument(skip(broker))]
-pub async fn fetch_topic(broker: &str) -> Result<Vec<String>, AppErr> {
+#[tracing::instrument(skip(params))]
+pub async fn fetch_topic(params: &str) -> Result<Vec<String>, AppErr> {
 	// ...
-	const OFFSET_TOPICS: &str = "__consumer_offsets";
 
-	// build client
-	let consumer_res = ClientConfig::new()
-		.set("bootstrap.servers", broker.to_owned())
-		.set("session.timeout.ms", "3000")
+	const OFFSET_TOPICS: &str = "__consumer_offsets";
+	let connect_map = match params
+		.parse::<QueryMap>()
+		.with_context(|| format!("parser connect url error {}", params))
+	{
+		Ok(data) => data,
+		Err(err) => {
+			error!("parser connect url error {:?}", err);
+			return Err(errcode::FETCH_TOPIC_CONNECT_ERR.clone());
+		}
+	};
+	let mut config = ClientConfig::new();
+	for (k, v) in connect_map.iter() {
+		config.set(k, v);
+		debug!("set config {}={}", k, v);
+	}
+	let consumer_res = config
 		.set_log_level(rdkafka::config::RDKafkaLogLevel::Info)
 		.create::<BaseConsumer>()
-		.with_context(|| format!("create client {broker}"));
+		.with_context(|| format!("create client {params}"));
 
 	let consumer = match consumer_res {
 		Ok(consumer) => consumer,
 		Err(err) => {
 			error!("build consumer client err {err:?}");
-			return Err(errcode::FETCH_TOPIC_CONNECT_ERR.clone());
+			return Err(errcode::FETCH_TOPIC_PROPERTY_ERR
+				.clone()
+				.with_err_msg(format!("{:?}", err)));
 		}
 	};
 
 	// fetch metadata
 	let meta = match consumer
 		.fetch_metadata(None, Duration::from_secs(30))
-		.with_context(|| format!("fetch metadata {broker}"))
+		.with_context(|| format!("fetch metadata {params}"))
 	{
 		Ok(meta) => meta,
 		Err(err) => {
@@ -61,8 +77,8 @@ mod my_test {
 
 	#[tokio::test]
 	async fn test_get_topic() -> anyhow::Result<()> {
-		let broker = "localhost:9092";
-		let topics = fetch_topic(broker).await?;
+		let params = "bootstrap.servers=localhost:9092";
+		let topics = fetch_topic(params).await?;
 		println!("topics {topics:?}");
 		Ok(())
 	}

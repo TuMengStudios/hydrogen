@@ -7,14 +7,15 @@ use tracing::instrument;
 use unique_id::string::StringGenerator;
 use unique_id::Generator;
 
-use crate::{
-	biz::connector::util,
-	core::{AppData, AppErr},
-	extractor::RequestContext,
-	types::{KafkaCheckRequest, KafkaCheckResponse, KafkaTopicRequest, KafkaTopicResponse},
-	util::x_data,
-};
-
+use crate::biz::connector::util;
+use crate::core::AppData;
+use crate::core::AppErr;
+use crate::extractor::RequestContext;
+use crate::types::KafkaCheckRequest;
+use crate::types::KafkaCheckResponse;
+use crate::types::KafkaTopicRequest;
+use crate::types::KafkaTopicResponse;
+use crate::util::x_data;
 pub struct KafkaHandler;
 
 impl KafkaHandler {
@@ -24,7 +25,7 @@ impl KafkaHandler {
 		Json(req): Json<KafkaTopicRequest>,
 	) -> Result<AppData<KafkaTopicResponse>, AppErr> {
 		debug!("fetch kafka topic");
-		let res = util::fetch_topic(&req.broker).await;
+		let res = util::fetch_topic(&req.params).await;
 		x_data(res)
 	}
 
@@ -34,7 +35,7 @@ impl KafkaHandler {
 		Json(req): Json<KafkaCheckRequest>,
 	) -> Result<AppData<KafkaCheckResponse>, AppErr> {
 		debug!("kafka check");
-		let res = util::fetch_topic(&req.broker).await;
+		let res = util::fetch_topic(&req.params).await;
 		x_data(res)
 	}
 }
