@@ -8,7 +8,6 @@ use serde::Serialize;
 
 use serde_json::json;
 
-use tracing::debug;
 use tracing::error;
 use tracing::trace;
 
@@ -25,12 +24,8 @@ pub fn from_val<T: DeserializeOwned>(val: &serde_json::Value) -> anyhow::Result<
 }
 
 pub fn x_data<T: Serialize + Debug>(data: Result<T, AppErr>) -> Result<AppData<T>, AppErr> {
-	// debug!("process {:?}", data);
 	match data {
-		Ok(res) => {
-			debug!("solve ok {:?}", res);
-			Ok(AppData(res))
-		}
+		Ok(res) => Ok(AppData(res)),
 		Err(err) => {
 			error!("solve error {:?}", err);
 			Err(err)

@@ -3,6 +3,8 @@ CREATE DATABASE `hydrogen`
 /*!80016 DEFAULT ENCRYPTION='N' */
 ;
 
+use hydrogen;
+
 -- hydrogen.task_info definition
 CREATE TABLE `task_info` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'task id',
@@ -22,7 +24,7 @@ CREATE TABLE `task_info` (
 CREATE TABLE `task_log` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'task log id',
     `task_id` bigint NOT NULL DEFAULT '0' COMMENT 'task id',
-    `log_info` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT 'task log',
+    `log_info` text COMMENT 'task log',
     `status` mediumint NOT NULL DEFAULT '0' COMMENT 'log status',
     `created_at` bigint NOT NULL DEFAULT '0' COMMENT 'created time',
     `updated_at` bigint NOT NULL DEFAULT '0' COMMENT 'update time',

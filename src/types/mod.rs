@@ -121,7 +121,7 @@ pub struct CreateTaskRequest {
 	pub property_item: PropertyItem, //
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct PropertyItem {
 	pub node_name: String,
 	pub value_type: String,
@@ -139,17 +139,16 @@ pub struct PropertyItemRequest {
 
 impl CreateTaskRequest {
 	pub fn to_task(&self) -> TaskInfo {
-		let mut data = TaskInfo::default();
-		data.name.clone_from(&self.name);
-		data.created_at = chrono::Local::now().timestamp();
-		data.updated_at = chrono::Local::now().timestamp();
-		data.parser_config = serde_json::json!(self.parser_config.clone());
-		// data.parser_config = self.parser_config.clone();
-		data.debug_text = self.debug_text.clone();
-		data.dst_config = self.dst_config.clone();
-		data.src_config = self.src_config.clone();
-		data.status = TaskStatus::Created.get_status();
-		data
+		TaskInfo::default()
+			.with_name(self.name.clone())
+			.with_created_at(chrono::Local::now().timestamp())
+			.with_updated_at(chrono::Local::now().timestamp())
+			.with_parser_config(serde_json::json!(self.parser_config.clone()))
+			.with_property_item(serde_json::json!(self.property_item))
+			.with_status(TaskStatus::Created.get_status())
+			.with_debug_text(self.debug_text.clone())
+			.with_src_config(self.src_config.clone())
+			.with_dst_config(self.dst_config.clone())
 	}
 }
 
@@ -181,7 +180,6 @@ pub struct UpdateTaskRequest {
 	pub id: i64,
 	pub name: String,
 	pub status: i32,
-	//pub parser_config: serde_json::Value,
 	pub parser_config: crate::model::task::ParserConfig,
 	pub dst_config: serde_json::Value,
 	pub src_config: serde_json::Value,
@@ -199,6 +197,7 @@ impl UpdateTaskRequest {
 			.with_src_config(self.src_config.clone())
 			.with_dst_config(self.dst_config.clone())
 			.with_debug_text(self.debug_text.clone())
+			.with_property_item(serde_json::json!(self.property_item.clone()))
 	}
 }
 
@@ -379,3 +378,10 @@ impl TokioMetrics {
 		}
 	}
 }
+
+#[derive(Debug, Deserialize)]
+pub struct DeleteTaskRequest {
+	pub id: i64,
+}
+
+pub type DeleteTaskResponse = ();

@@ -33,6 +33,8 @@ use crate::model::task::TaskStatus;
 
 use crate::types::CreateTaskRequest;
 use crate::types::CreateTaskResponse;
+use crate::types::DeleteTaskRequest;
+use crate::types::DeleteTaskResponse;
 use crate::types::FetchTaskRequest;
 use crate::types::StartTaskRequest;
 use crate::types::StartTaskResponse;
@@ -93,16 +95,26 @@ impl TaskHandler {
 		State(state): State<AppState>,
 		req_ctx: RequestContext,
 		Json(req): Json<UpdateTaskRequest>,
-		//
 	) -> Result<AppData<UpdateTaskResponse>, AppErr> {
 		//
 		debug!("update task {:?} uri:{:?}", req, req_ctx.uri);
+		let task = TaskInfo::fetch_task_by_id(&state.db_conn, req.id).await?;
 
-		// TaskInfo::default();
+		// task is running
+		if task.get_status() == TaskStatus::Running.get_status() {
+			error!("task is running {}", req.id);
+			return Err(errcode::UPDATE_TASK_IS_RUNNING_ERR.clone());
+		}
+
+		// task is deleted
+		if task.get_status() == TaskStatus::Deleted.get_status() {
+			error!("task {} is deleted", req.id);
+			return Err(errcode::UPDATE_TASK_IS_DELETED_ERR.clone());
+		}
+
 		let mut task = req.cover_task();
 
 		let r = TaskInfo::update_task(&state.db_conn, &mut task).await;
-		// Ok(AppData(r))
 		crate::util::x_data(r)
 	}
 }
@@ -195,6 +207,29 @@ impl TaskHandler {
 		let res = TaskInfo::get_task(&state.db_conn, page_arg).await;
 		// response result
 		crate::util::x_data(res)
+	}
+}
+
+impl TaskHandler {
+	#[tracing::instrument(skip(state))]
+	pub async fn delete_task(
+		req_ctx: RequestContext,
+		State(state): State<AppState>,
+		Path(req): Path<DeleteTaskRequest>,
+	) -> Result<AppData<DeleteTaskResponse>, AppErr> {
+		let task = TaskInfo::fetch_task_by_id(&state.db_conn, req.id).await?;
+		if task.get_status() == TaskStatus::Running.get_status() {
+			error!("task {} is running please stop before this operation", req.id);
+			return Err(errcode::DELETE_TASK_IS_RUNNING_ERR.clone());
+		}
+
+		if task.get_status() == TaskStatus::Deleted.get_status() {
+			error!("task {} is deleted", req.id);
+
+			return Err(errcode::DELETE_TASK_IS_DELETED_ERR.clone());
+		}
+		let res = TaskInfo::delete_task(&state.db_conn, req.id).await;
+		x_data(res)
 	}
 }
 

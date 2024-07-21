@@ -28,10 +28,6 @@ struct KafkaSinkArg {
 }
 
 impl KafkaSinkArg {
-	// pub fn get_broker(&self) -> &str {
-	// 	&self.broker
-	// }
-
 	pub fn get_topic(&self) -> &str {
 		&self.topic
 	}

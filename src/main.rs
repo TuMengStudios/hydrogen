@@ -9,7 +9,7 @@ use hydrogen::transport::http;
 #[command(
 	author = "冷饮趁热喝 2356450144@qq.com",
 	version = "0.1.0",
-	about = "data expand",
+	about = "data tools",
 	long_about = "a data tools powered by rust",
 	next_line_help = true
 )]

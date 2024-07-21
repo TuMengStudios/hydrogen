@@ -1,9 +1,10 @@
-version: '3.5'
+version: '3.0'
 services:
   mysql:
     image: mysql:8.0.32
     container_name: hydrogen_mysql
     restart: always
+    # please do not use these settings in product environment
     environment:
       - MYSQL_ROOT_PASSWORD=123456
       - MYSQL_DATABASE=hydrogen
@@ -26,7 +27,7 @@ services:
       - "1099:1099"
     environment:
       - KAFKA_ADVERTISED_HOST_NAME=localhost
-      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true # 自动创建 topic
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true # auto create topic while not exists
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper_hydrogen:2181
       - KAFKA_CREATE_TOPICS=my-topic
       - KAFKA_LOG_RETENTION_HOURS=24

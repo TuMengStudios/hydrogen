@@ -4,6 +4,8 @@ use serde::Deserialize;
 
 use sqlx::MySqlPool;
 
+use std::sync::atomic::AtomicI64;
+use std::sync::atomic::Ordering;
 use std::time::Duration;
 
 use tokio::sync::mpsc;
@@ -103,6 +105,8 @@ pub struct Tasking {
 	sink: SinkerEnum,
 	source: SourceEnum,
 	task: TaskInfo,
+	handle_num: AtomicI64,
+	handle_err: AtomicI64,
 }
 
 impl Tasking {
@@ -112,7 +116,13 @@ impl Tasking {
 		let sink = get_sinker(sink_arg.get_name(), sink_arg.get_val())?;
 		let source_arg = SourceArg::new(&task.src_config)?;
 		let source = get_source(source_arg.get_name(), source_arg.get_val())?;
-		Ok(Self { sink, source, task })
+		Ok(Self {
+			sink,
+			source,
+			task,
+			handle_num: AtomicI64::new(0),
+			handle_err: AtomicI64::new(0),
+		})
 	}
 }
 
@@ -190,6 +200,19 @@ impl Tasking {
 		// task has cancel or error
 		remove_task(self.task.id);
 		warn!("stop__task {res:?} {}", self.task.id);
+
+		let add_handle_num = self
+			.handle_num
+			.fetch_add(-self.handle_num.fetch_add(0, Ordering::Relaxed), Ordering::Relaxed);
+
+		//
+		let add_handle_err = self
+			.handle_err
+			.fetch_add(-self.handle_err.fetch_add(0, Ordering::Relaxed), Ordering::Relaxed);
+
+		// update task status
+		let _ = TaskInfo::update_meta(&conn, self.task.id, add_handle_num, add_handle_err).await;
+
 		match res {
 			Ok(res) => {
 				info!("task success {:?}", res);
@@ -227,12 +250,22 @@ impl Tasking {
 		info!("update task heartbeat task sub job {id}");
 		let mut ticker = tokio::time::interval(Duration::from_secs(INTERVAL));
 		let mut err_cnt: i32 = 0;
+
 		// ...
 		loop {
 			let _i = ticker.tick().await;
+			// ..
+			let add_handle_num = self
+				.handle_num
+				.fetch_add(-self.handle_num.fetch_add(0, Ordering::Relaxed), Ordering::Relaxed);
+
+			//
+			let add_handle_err = self
+				.handle_err
+				.fetch_add(-self.handle_err.fetch_add(0, Ordering::Relaxed), Ordering::Relaxed);
 
 			// update task status
-			let res = TaskInfo::update_heartbeat(&conn, id).await;
+			let res = TaskInfo::update_meta(&conn, id, add_handle_num, add_handle_err).await;
 			match res {
 				Ok(_) => {
 					// todo
@@ -261,9 +294,18 @@ impl Tasking {
 		sender: mpsc::Sender<CoreMsg>,
 	) -> anyhow::Result<()> {
 		while let Some(mut msg) = receiver.recv().await {
-			msg.result = p.run(msg.get_raw_msg()).await?;
+			self.handle_num.fetch_add(1, Ordering::Relaxed);
+			match p.run(msg.get_raw_msg()).await {
+				Ok(result) => {
+					msg.result = result;
+				}
+				Err(err) => {
+					error!("handle msg {} error {:?}", msg.get_raw_msg(), err);
+					self.handle_err.fetch_add(1, Ordering::Relaxed);
+					continue;
+				}
+			};
 			msg = msg.with_raw_keys(p.0.get_keys().clone());
-			// plugin ??
 			sender.send(msg).await?;
 		}
 

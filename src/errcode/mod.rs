@@ -71,3 +71,16 @@ lazy_static! {
 lazy_static! {
 	pub static ref FETCH_METRICS_ERR: AppErr = AppErr::new(30800, "fetch metrics error");
 }
+
+lazy_static! {
+	pub static ref UPDATE_TASK_IS_RUNNING_ERR: AppErr = AppErr::new(30900, "task is running now");
+	pub static ref UPDATE_TASK_IS_DELETED_ERR: AppErr = AppErr::new(30901, "task is deleted");
+}
+
+lazy_static! {
+	pub static ref DELETE_TASK_ERR: AppErr = AppErr::new(40000, "deleted task error");
+	pub static ref DELETE_TASK_IS_RUNNING_ERR: AppErr =
+		AppErr::new(40001, "task is running can not delete");
+	pub static ref DELETE_TASK_IS_DELETED_ERR: AppErr =
+		AppErr::new(40002, "task is already deleted");
+}

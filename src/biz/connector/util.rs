@@ -56,7 +56,9 @@ pub async fn fetch_topic(params: &str) -> Result<Vec<String>, AppErr> {
 		Ok(meta) => meta,
 		Err(err) => {
 			error!("fetch meta data error {err:?}");
-			return Err(errcode::FETCH_TOPIC_METADATA_ERR.clone());
+			return Err(errcode::FETCH_TOPIC_METADATA_ERR
+				.clone()
+				.with_err_msg(format!("error {:?}", err)));
 		}
 	};
 

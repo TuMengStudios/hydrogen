@@ -34,7 +34,10 @@ pub struct TaskInfo {
 	pub heartbeat: i64,                   // heartbeat
 	pub created_at: i64,                  // task created at
 	pub updated_at: i64,                  // task updated
-	                                      // pub deleted_at: i64,                  // task deleted has value default is 0
+	pub property_item: serde_json::Value, // property item
+	// pub deleted_at: i64,                  // task deleted has value default is 0
+	pub handle_num: i64, // total handle message
+	pub handle_err: i64, // handler message error
 }
 
 impl TaskInfo {
@@ -60,6 +63,18 @@ impl TaskInfo {
 
 	pub fn with_parser_config(self, parser_config: serde_json::Value) -> Self {
 		Self { parser_config, ..self }
+	}
+
+	pub fn with_property_item(self, property_item: serde_json::Value) -> Self {
+		Self { property_item, ..self }
+	}
+
+	pub fn with_created_at(self, created_at: i64) -> Self {
+		Self { created_at, ..self }
+	}
+
+	pub fn with_updated_at(self, updated_at: i64) -> Self {
+		Self { updated_at, ..self }
 	}
 
 	pub fn with_id(self, id: i64) -> Self {
@@ -253,9 +268,10 @@ impl TaskInfo {
 			,dst_config
 			,debug_text
 			,status
+			,property_item
 			,heartbeat
 			,created_at
-			,updated_at) values(?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
+			,updated_at) values(?, ?, ?, ?, ?,?, ?, ?, ?, ?)"#,
 		)
 		.bind(&data.name)
 		.bind(&data.parser_config)
@@ -263,6 +279,7 @@ impl TaskInfo {
 		.bind(&data.dst_config)
 		.bind(&data.debug_text)
 		.bind(data.status)
+		.bind(&data.property_item)
 		.bind(data.heartbeat)
 		.bind(data.created_at)
 		.bind(data.updated_at)
@@ -291,6 +308,7 @@ impl TaskInfo {
 			, parser_config = ?
 			, src_config = ?
 			, dst_config = ?
+			, property_item = ?
 			, updated_at = ? where id = ?"#,
 		)
 		.bind(task.status)
@@ -298,6 +316,7 @@ impl TaskInfo {
 		.bind(&task.parser_config)
 		.bind(&task.src_config)
 		.bind(&task.dst_config)
+		.bind(&task.property_item)
 		.bind(task.updated_at)
 		.bind(task.id)
 		.execute(conn)
@@ -335,6 +354,66 @@ impl TaskInfo {
 		.await?;
 
 		Ok(res.rows_affected() as i64)
+	}
+}
+
+impl TaskInfo {
+	#[tracing::instrument(skip(conn))]
+	pub async fn update_meta(
+		conn: &MySqlPool,
+		id: i64,
+		add_handle_num: i64,
+		add_handle_err: i64,
+	) -> anyhow::Result<i64> {
+		let heartbeat = chrono::Local::now().timestamp();
+		let updated_at = chrono::Local::now().timestamp();
+
+		let res = sqlx::query(
+			r#"update task_info set
+		 heartbeat = ?
+		 , handle_num = handle_num + ?
+		 , handle_err = handle_err + ?
+		 ,updated_at = ? where id = ?"#,
+		)
+		.bind(heartbeat)
+		.bind(add_handle_num)
+		.bind(add_handle_err)
+		.bind(updated_at)
+		.bind(id)
+		.execute(conn)
+		.await?;
+
+		Ok(res.rows_affected() as i64)
+	}
+}
+
+impl TaskInfo {
+	pub async fn delete_task(conn: &MySqlPool, id: i64) -> Result<(), AppErr> {
+		let updated_at = chrono::Local::now().timestamp();
+		let res = sqlx::query(
+			r#"update task_info set status = ?
+			, updated_at = ?
+			 where id = ?"#,
+		)
+		.bind(TaskStatus::Deleted.get_status())
+		.bind(updated_at)
+		.bind(id)
+		.execute(conn)
+		.await;
+
+		match res {
+			Ok(r) => {
+				if r.rows_affected() != 1 {
+					Err(errcode::DELETE_TASK_ERR.clone())
+				} else {
+					Ok(())
+				}
+			}
+			Err(err) => {
+				error!("update error {:?}", err);
+				Err(errcode::DELETE_TASK_ERR.clone())
+			}
+		}
 	}
 }
 

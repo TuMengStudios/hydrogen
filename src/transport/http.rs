@@ -46,6 +46,7 @@ pub async fn start(srv_ctx: &ServerContext) -> anyhow::Result<()> {
 		.route("/task/list", get(TaskHandler::list_task))
 		.route("/task/start/:id", post(TaskHandler::start_task))
 		.route("/task/stop/:id", post(TaskHandler::stop_task))
+		.route("/task/del/:id", put(TaskHandler::delete_task))
 		.route("/task/health", post(TaskHandler::health))
 		.route("/task/running", get(TaskHandler::running_task))
 		.route("/task/log/list", get(TaskLogHandler::task_log_list))
@@ -90,8 +91,6 @@ async fn inject_trace_id(
 	let id = nanoid::nanoid!(32, &alphabet); //=> "4f90d13a42"
 	let parent = tracing::Span::current();
 	let sp = tracing::span!(parent:&parent,Level::DEBUG, "hydrogen", "trace_id" = id);
-
-	// let _enter = sp.enter();
 
 	let mut resp = next.run(req).instrument(sp).await;
 
