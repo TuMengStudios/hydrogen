@@ -1,0 +1,13 @@
+# rustfmt doc - https://rust-lang.github.io/rustfmt/
+
+hard_tabs = true
+edition = "2021"
+
+# For recording
+max_width = 80
+# chain_width = 40
+# array_width = 40
+# 设置换行符
+tab_spaces = 4
+use_small_heuristics = "Max" # 设置换行策略
+newline_style = "Auto"       # 设置换行符风格，根据平台自动选择

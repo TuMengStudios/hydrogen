@@ -1,0 +1,16 @@
+[package]
+name = "lepumk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0.203", features = ["derive"] }
+serde_json = "1.0.118"
+anyhow = "1.0.85"
+tracing = "0.1.40"
+
+[dev-dependencies]
+tokio = { version = "1.38.0", features = ["full"] }
+tracing-subscriber = { version = "0.3.18", features = ["json", "local-time"] }
+nid = "3.0.0"
+lazy_static = { version = "1.4.0" }
