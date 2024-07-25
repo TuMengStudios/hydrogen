@@ -196,11 +196,8 @@ impl TaskHandler {
 	) -> Result<AppData<TaskListResponse>, AppErr> {
 		debug!("task list");
 		// build request arg
-		let page_arg = task::FetchTaskRequest {
-			status: Some(req.status),
-			page: req.page,
-			page_size: req.page_size,
-		};
+		let page_arg =
+			task::FetchTaskRequest { status: req.status, page: req.page, page_size: req.page_size };
 		// ...
 		debug!("list task page arg {:?}", page_arg);
 		//  get task list from db

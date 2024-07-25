@@ -138,7 +138,7 @@ impl TaskStatus {
 
 #[derive(Debug)]
 pub struct FetchTaskRequest {
-	pub status: Option<i32>,
+	pub status: i32,
 	pub page: i32,
 	pub page_size: i32,
 }
@@ -179,21 +179,43 @@ impl TaskInfo {
 
 		debug!("count task status");
 
-		let r = sqlx::query_as::<MySql, Cnt>(
-			r#"select count(1) as cnt from task_info where status = ?"#,
-		)
-		.bind(status)
-		.fetch_one(conn)
-		.await
-		.with_context(|| format!("count task_info where status = {}", status));
+		let mut builder = QueryBuilder::new("select count(*) as cnt from task_info ");
 
-		match r {
-			Ok(cnt) => {
-				debug!("count task success {} cnt {}", status, cnt.cnt);
-				Ok(cnt.cnt)
+		match status {
+			TASK_STATUS_CREATED => {
+				builder.push(" where status = ").push_bind(TASK_STATUS_CREATED);
 			}
+
+			TASK_STATUS_DELETED => {
+				builder.push(" where status = ").push_bind(TASK_STATUS_DELETED);
+			}
+
+			TASK_STATUS_RUNNING => {
+				builder.push(" where status = ").push_bind(TASK_STATUS_RUNNING);
+			}
+
+			TASK_STATUS_ERROR => {
+				builder.push(" where status = ").push_bind(TASK_STATUS_ERROR);
+			}
+
+			TASK_STATUS_STOP => {
+				builder.push(" where status = ").push_bind(TASK_STATUS_STOP);
+			}
+			other => {
+				info!("find status = {} other {}", status, other);
+				builder.push(" where 1 = 1");
+			}
+		};
+
+		match builder
+			.build_query_as::<Cnt>()
+			.fetch_one(conn)
+			.await
+			.with_context(|| format!("count status {status}"))
+		{
+			Ok(r) => Ok(r.cnt),
 			Err(err) => {
-				error!("count task status error {:?}", err);
+				error!("count task error {:?}", err);
 				Err(errcode::COUNT_TASK_STATUS_ERR.clone())
 			}
 		}
@@ -206,9 +228,32 @@ impl TaskInfo {
 	) -> Result<Vec<TaskInfo>, AppErr> {
 		let mut builder: QueryBuilder<MySql> = QueryBuilder::new("select * from task_info");
 
-		if req.status.is_some() {
-			builder.push(" where status = ").push_bind(req.status);
-		}
+		match req.status {
+			TASK_STATUS_CREATED => {
+				builder.push(" where status = ").push_bind(TASK_STATUS_CREATED);
+			}
+
+			TASK_STATUS_DELETED => {
+				builder.push(" where status = ").push_bind(TASK_STATUS_DELETED);
+			}
+
+			TASK_STATUS_RUNNING => {
+				builder.push(" where status = ").push_bind(TASK_STATUS_RUNNING);
+			}
+
+			TASK_STATUS_ERROR => {
+				builder.push(" where status = ").push_bind(TASK_STATUS_ERROR);
+			}
+
+			TASK_STATUS_STOP => {
+				builder.push(" where status = ").push_bind(TASK_STATUS_STOP);
+			}
+			other => {
+				info!("find status = {} other {}", req.status, other);
+				builder.push(" where 1 = 1");
+			}
+		};
+
 		builder
 			.push(" LIMIT ")
 			.push_bind(req.page_size)
