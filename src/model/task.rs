@@ -353,6 +353,7 @@ impl TaskInfo {
 			, parser_config = ?
 			, src_config = ?
 			, dst_config = ?
+			, debug_text = ?
 			, property_item = ?
 			, updated_at = ? where id = ?"#,
 		)
@@ -361,6 +362,7 @@ impl TaskInfo {
 		.bind(&task.parser_config)
 		.bind(&task.src_config)
 		.bind(&task.dst_config)
+		.bind(&task.debug_text)
 		.bind(&task.property_item)
 		.bind(task.updated_at)
 		.bind(task.id)
