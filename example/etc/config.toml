@@ -24,12 +24,10 @@ file_name = "hydrogen.log"
 max_file = 10
 
 # log format json 和 plain
-format = "plain"
+format = "json"
 
 # log level trace, debug, info, warn or error
-level = "debug"
+level = "info"
 
 # output to file or console, value is file or console
-# output = "console"
-output = "console"
-# output = "file"
+output = "file"

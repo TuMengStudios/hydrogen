@@ -7,7 +7,7 @@ use hydrogen::transport::http;
 
 #[derive(clap::Parser, Debug)]
 #[command(
-	author = "冷饮趁热喝 2356450144@qq.com",
+	author = "到底谁在掀桌子 2356450144@qq.com",
 	version = "0.1.0",
 	about = "data tools",
 	long_about = "a data tools powered by rust",
