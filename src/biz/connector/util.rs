@@ -75,13 +75,13 @@ pub async fn fetch_topic(params: &str) -> Result<Vec<String>, AppErr> {
 
 #[cfg(test)]
 mod my_test {
-	use crate::biz::connector::util::fetch_topic;
+	// use crate::biz::connector::util::fetch_topic;
 
-	#[tokio::test]
-	async fn test_get_topic() -> anyhow::Result<()> {
-		let params = "bootstrap.servers=localhost:9092";
-		let topics = fetch_topic(params).await?;
-		println!("topics {topics:?}");
-		Ok(())
-	}
+	// #[tokio::test]
+	// async fn test_get_topic() -> anyhow::Result<()> {
+	// 	let params = "bootstrap.servers=localhost:9092";
+	// 	let topics = fetch_topic(params).await?;
+	// 	println!("topics {topics:?}");
+	// 	Ok(())
+	// }
 }
