@@ -551,6 +551,7 @@ impl JsonParser {
 		Ok(Property::new(self.0.sep.clone(), val.clone(), item))
 	}
 
+	#[allow(clippy::needless_return)]
 	#[instrument(skip(self, obj))]
 	fn property_object(
 		&self,

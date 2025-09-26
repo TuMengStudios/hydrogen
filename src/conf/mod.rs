@@ -63,6 +63,7 @@ pub struct LogConfig {
 	pub file_name: String,
 	pub dir: String,
 	pub max_file: usize,
+	pub time_format: String, // time format,default %Y-%m-%d %H:%M:%S%.6f
 	pub format: String,
 	pub level: String, // log level  trace,debug,info,warn,error
 	pub output: String,

@@ -16,7 +16,7 @@ axum = { version = "0.7.5" }
 serde = { version = "1.0.200", features = ["derive"] }
 serde_json = { version = "1.0.117" }
 tracing = { version = "0.1.40" }
-tracing-subscriber = { version = "0.3.18", features = ["json", "local-time"] }
+tracing-subscriber = { version = "0.3.18", features = ["chrono", "json"] }
 toml = { version = "0.8.2", features = ["default"] }
 
 clap = { version = "4.4.6", features = [
