@@ -31,3 +31,4 @@ level = "info"
 
 # output to file or console, value is file or console
 output = "file"
+time_format = "%Y-%m-%d %H:%M:%S%.6f"

@@ -1,7 +1,7 @@
 use crate::conf;
 
 use tracing_appender::non_blocking::WorkerGuard;
-use tracing_subscriber::fmt::time::UtcTime;
+use tracing_subscriber::fmt::time::ChronoLocal;
 
 // use LogConf to init subscriber
 #[allow(clippy::collapsible_else_if)]
@@ -12,6 +12,8 @@ pub fn init_log_subscriber(cfg: &conf::LogConfig) -> anyhow::Result<WorkerGuard>
 		.filename_prefix(cfg.file_name.as_str())
 		.build(cfg.dir.as_str())?;
 
+	let timer = ChronoLocal::new(cfg.time_format.clone());
+
 	let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
 	let builder = tracing_subscriber::fmt()
@@ -19,7 +21,7 @@ pub fn init_log_subscriber(cfg: &conf::LogConfig) -> anyhow::Result<WorkerGuard>
 		.with_file(true)
 		.with_line_number(true)
 		.with_level(true)
-		.with_timer(UtcTime::rfc_3339())
+		.with_timer(timer)
 		.with_max_level(cfg.log_level());
 
 	if cfg.format.to_ascii_lowercase().as_str() == "json" {
