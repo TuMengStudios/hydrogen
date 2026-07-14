@@ -27,7 +27,7 @@ jobs:
 
       - name: Install Rust
         run: |
-          rustup toolchain install 1.78.0 --profile minimal --component rustfmt clippy
+          rustup toolchain install 1.78.0 --profile minimal --component rustfmt --component clippy
           rustup default 1.78.0
 
       - name: Check formatting
