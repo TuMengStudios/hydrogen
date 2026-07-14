@@ -27,8 +27,8 @@ jobs:
 
       - name: Install Rust
         run: |
-          rustup toolchain install 1.78.0 --profile minimal --component rustfmt --component clippy
-          rustup default 1.78.0
+          rustup toolchain install stable --profile minimal --component rustfmt --component clippy
+          rustup default stable
 
       - name: Check formatting
         run: cargo fmt --all -- --check
