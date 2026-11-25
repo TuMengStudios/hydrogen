@@ -100,8 +100,8 @@ impl TaskLog {
 			task_id,
 			log_info: log_info.to_string(),
 			status: TaskLogStatus::Normal.status(),
-			created_at: chrono::Local::now().timestamp(),
-			updated_at: chrono::Local::now().timestamp(),
+			created_at: jiff::Timestamp::now().as_second(),
+			updated_at: jiff::Timestamp::now().as_second(),
 		}
 	}
 }
