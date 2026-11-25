@@ -386,8 +386,8 @@ impl TaskInfo {
 impl TaskInfo {
 	#[tracing::instrument(skip(conn))]
 	pub async fn update_heartbeat(conn: &MySqlPool, id: i64) -> anyhow::Result<i64> {
-		let heartbeat = chrono::Local::now().timestamp();
-		let updated_at = chrono::Local::now().timestamp();
+		let heartbeat = jiff::Timestamp::now().as_second();
+		let updated_at = jiff::Timestamp::now().as_second();
 
 		let res = sqlx::query(
 			r#"update task_info set
@@ -412,8 +412,8 @@ impl TaskInfo {
 		add_handle_num: i64,
 		add_handle_err: i64,
 	) -> anyhow::Result<i64> {
-		let heartbeat = chrono::Local::now().timestamp();
-		let updated_at = chrono::Local::now().timestamp();
+		let heartbeat = jiff::Timestamp::now().as_second();
+		let updated_at = jiff::Timestamp::now().as_second();
 
 		let res = sqlx::query(
 			r#"update task_info set
@@ -436,7 +436,7 @@ impl TaskInfo {
 
 impl TaskInfo {
 	pub async fn delete_task(conn: &MySqlPool, id: i64) -> Result<(), AppErr> {
-		let updated_at = chrono::Local::now().timestamp();
+		let updated_at = jiff::Timestamp::now().as_second();
 		let res = sqlx::query(
 			r#"update task_info set status = ?
 			, updated_at = ?

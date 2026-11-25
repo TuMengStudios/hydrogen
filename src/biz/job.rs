@@ -221,7 +221,7 @@ impl Tasking {
 				// update status as stop
 				self.task.status = TaskStatus::Stop.get_status();
 				// updated updated_at time
-				self.task.updated_at = chrono::Local::now().timestamp();
+				self.task.updated_at = jiff::Timestamp::now().as_second();
 
 				let _ = TaskInfo::update_task(&conn, &mut self.task).await;
 			}

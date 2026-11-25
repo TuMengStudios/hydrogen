@@ -793,11 +793,11 @@ mod tests {
 	async fn test_with_strict_mode() {
 		let _d = _Str.clone();
 		let opt = ParserOptions::fmt();
-		assert_eq!(opt.strict, false);
+		assert!(!opt.strict);
 		let opt = ParserOptions::fmt().with_strict_mode(true);
-		assert_eq!(opt.strict, true);
+		assert!(opt.strict);
 		let opt = ParserOptions::fmt().with_strict_mode(false);
-		assert_eq!(opt.strict, false);
+		assert!(!opt.strict);
 	}
 
 	#[tokio::test]
@@ -899,7 +899,7 @@ mod tests {
 		fold.insert("key".to_owned());
 		fold.insert("value".to_owned());
 		let opt = ParserOptions::fmt().with_fold(fold);
-		println!("{}", json!(opt).to_string());
+		println!("{}", json!(opt));
 	}
 
 	#[tokio::test]
@@ -917,8 +917,8 @@ mod tests {
         }"#;
 
 		let opt = serde_json::from_str::<ParserOptions>(s)?;
-		assert_eq!(opt.fold.contains("key"), true);
-		assert_eq!(opt.fold.contains("fuzz"), false);
+		assert!(opt.fold.contains("key"));
+		assert!(!opt.fold.contains("fuzz"));
 		assert_eq!(opt.sep, "".to_owned());
 		assert_eq!(opt.ignore.len(), 0);
 		assert_eq!(opt.keys.len(), 0);
@@ -946,7 +946,7 @@ mod tests {
 			Some(&serde_json::Value::String("value".to_owned()))
 		);
 
-		assert_eq!(res[0].get("key").unwrap().is_string(), true);
+		assert!(res[0].get("key").unwrap().is_string());
 		assert_eq!(res[0].len(), 2);
 		Ok(())
 	}

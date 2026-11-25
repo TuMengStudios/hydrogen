@@ -141,8 +141,8 @@ impl CreateTaskRequest {
 	pub fn to_task(&self) -> TaskInfo {
 		TaskInfo::default()
 			.with_name(self.name.clone())
-			.with_created_at(chrono::Local::now().timestamp())
-			.with_updated_at(chrono::Local::now().timestamp())
+			.with_created_at(jiff::Timestamp::now().as_second())
+			.with_updated_at(jiff::Timestamp::now().as_second())
 			.with_parser_config(serde_json::json!(self.parser_config.clone()))
 			.with_property_item(serde_json::json!(self.property_item))
 			.with_status(TaskStatus::Created.get_status())
